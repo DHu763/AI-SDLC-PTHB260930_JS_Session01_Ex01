@@ -1,84 +1,118 @@
-// Quy tắc: Điểm hợp lệ là số từ 0 - 10 
-// Xếp loại: Giỏi (>= 8), Khá (>= 6.5), Trung bình (>= 5), Yếu (< 5).
-function classifyScore(score) {
-    if (typeof score !== "number" || score < 0 || score > 10) {
-        return "Điểm không hợp lệ";
-    }
-    if (score >= 8) {
-        return "Giỏi";
-    } else if (score >= 6.5) {
-        return "Khá";
-    } else if (score >= 5) {
-        return "Trung bình";
-    } else {
-        return "Yếu";
-    }
-}
-
-// Quy tắc: Đổi mã trạng thái sang tiếng Việt.
-// "not_started" -> "Chưa bắt đầu", "in_progress" -> "Đang học", "completed" -> "Hoàn thành", còn lại -> "Trạng thái không xác định".
-function getCourseStatusLabel(status) {
-    let label;
-    switch (status) {
-        case "not_started":
-            label = "Chưa bắt đầu";
-            break;
-        case "in_progress":
-            label = "Đang học";
-            break;
-        case "completed":
-            label = "Hoàn thành";
-            break;
-        default:
-            label = "Trạng thái không xác định";
-    }
-    return label;
-}
-
-// Quy tắc: Đạt khóa học khi điểm từ điểm chuẩn trở lên.
-// Nếu không đặt điểm chuẩn thì mặc định là 5; điểm chuẩn 0 vẫn hợp lệ.
-function isPassed(score, passScore) {
-    const required = passScore ?? 5;
-    return score >= required;
-}
-
-// Quy tắc: Giá hợp lệ phải là số >= 0
-// Mã giảm giá bỏ khoảng trắng 2 đầu: WELCOME10 giảm 10%, STUDENT20 giảm 20%.
-function getFinalPrice(price, couponCode) {
-    if (typeof price !== "number" || price < 0) {
+// Trả về điểm cao nhất trong mảng, null nếu mảng rỗng
+function findHighestScore(scores) {
+    if (!scores || scores.length === 0) {
         return null;
     }
-
-    let discountPercent = 0;
-    const normalizedCode = typeof couponCode === "string" ? couponCode.trim().toUpperCase() : "";
-
-    switch (normalizedCode) {
-        case "WELCOME10":
-            discountPercent = 10;
-            break;
-        case "STUDENT20":
-            discountPercent = 20;
-            break;
-        default:
-            discountPercent = 0;
+    let maxScore = scores[0];
+    for (let i = 1; i < scores.length; i++) {
+        if (scores[i] > maxScore) {
+            maxScore = scores[i];
+        }
     }
-    return price - (price * discountPercent) / 100;
+    return maxScore;
 }
 
-// Quy tắc: Tiến độ hợp lệ từ 0-100, điểm trung bình hợp lệ từ 0-10.
-// Tiến độ < 80 -> "Chưa đủ tiến độ"; Điểm < 5 -> "Chưa đủ điểm"; Còn lại -> "Đủ điều kiện cấp chứng chỉ".
-function getCertificateResult(progress, average) {
-    const isValidProgress = typeof progress === "number" && progress >= 0 && progress <= 100;
-    const isValidAverage = typeof average === "number" && average >= 0 && average <= 10;
+// Trả về số điểm >= ngưỡng threshold
+function countAtLeast(scores, threshold) {
+    let count = 0;
+    for (let i = 0; i < scores.length; i++) {
+        if (scores[i] >= threshold) {
+            count++;
+        }
+    }
+    return count;
+}
 
-    if (!isValidProgress || !isValidAverage) {
-        return "Dữ liệu không hợp lệ";
+// Trả về điểm trung bình, null nếu không có điểm hợp lệ
+function averageValidScores(scores) {
+    let sum = 0;
+    let validCount = 0;
+
+    for (let i = 0; i < scores.length; i++) {
+        const currentScore = scores[i];
+        if (
+            typeof currentScore !== "number" ||
+            currentScore !== currentScore ||
+            currentScore < 0 ||
+            currentScore > 10
+        ) continue;
+        sum += currentScore;
+        validCount++;
     }
-    if (progress < 80) {
-        return "Chưa đủ tiến độ";
-    } else if (average < 5) {
-        return "Chưa đủ điểm";
-    } else {
-        return "Đủ điều kiện cấp chứng chỉ";
+
+    if (validCount === 0) return null;
+    return sum / validCount;
+}
+
+// Trả về vị trí của điểm đầu tiên thấp hơn điểm passScore, nếu không có trả về -1
+function findFirstBelow(scores, passScore) {
+    for (let i = 0; i < scores.length; i++) {
+        if (scores[i] < passScore) {
+            return i;
+        }
     }
+    return -1;
+}
+
+// Trả về số tuần cần thiết để học hết số bài học trong tuần
+function weeksToFinish(totalLessons, lessonsPerWeek) {
+    if (
+        typeof totalLessons !== "number" ||
+        totalLessons !== totalLessons ||
+        totalLessons < 0 ||
+        typeof lessonsPerWeek !== "number" ||
+        lessonsPerWeek !== lessonsPerWeek ||
+        lessonsPerWeek <= 0
+    ) return null;
+
+    if (totalLessons === 0) return 0;
+
+    let weeks = 0;
+    let remainingLessons = totalLessons;
+    while (remainingLessons > 0) {
+        remainingLessons -= lessonsPerWeek;
+        weeks++;
+    }
+    return weeks;
+}
+
+// Trả về tổng số bài học đã hoàn thành trong các khóa học
+function countCompletedLessons(courses) {
+    let completedCount = 0;
+    for (let i = 0; i < courses.length; i++) {
+        const course = courses[i];
+        for (let j = 0; j < course.length; j++) {
+            if (course[j] === true) {
+                completedCount++;
+            }
+        }
+    }
+    return completedCount;
+}
+
+// Trả về chuỗi thanh tiến độ tương ứng với phần trăm 
+function buildProgressBar(percent) {
+    if (
+        typeof percent !== "number" ||
+        percent !== percent ||
+        percent < 0 ||
+        percent > 100
+    ) return "";
+    let filledSlots = 0;
+    let currentPercent = percent;
+    while (currentPercent >= 10) {
+        filledSlots++;
+        currentPercent -= 10;
+    }
+
+    let content = "";
+    for (let i = 0; i < 10; i++) {
+        if (i < filledSlots) {
+            content += "#";
+        } else {
+            content += "-";
+        }
+    }
+
+    return "[" + content + "] " + percent + "%";
 }
