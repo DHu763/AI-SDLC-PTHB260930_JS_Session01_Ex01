@@ -1,0 +1,4 @@
+Báo cáo sửa lỗi
+1. `getCourseStatusLabel("in_progress")` ; `Trạng thái không xác định` ; `Đang học` ; `label = "Đang học";` ; Sau khi gán, thiếu `break` nên chương trình chạy tiếp qua các `case` bên dưới đến `default` và ghi đè nhãn.
+2. `classifyScore(9)` ; `Trung bình` ; `Giỏi` ; `if (score > 5)` ; Đặt điều kiện mốc thấp  (`> 5`) lên đầu chuỗi `if / else if`, khiến mọi điểm số lớn hơn 5 (như 6.5, 9) đều lọt vào nhánh đầu tiên và thoát hàm sớm, đồng thời chưa kiểm tra khoảng hợp lệ `0-10`. 
+3. `isPassed(2, 0)` ; `false` ; `true` ; `const required = passScore || 5;` ; Toán tử `||` coi số `0` là giá trị false nên đã lấy giá trị mặc định là `5` thay vì giữ nguyên điểm chuẩn `0`.
